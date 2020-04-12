@@ -1,0 +1,34 @@
+type Product {
+  name: String!
+  description: String
+}
+type Account {
+  name: String!
+  balance_available: Float
+  balance_current: Float
+  currency_code: String
+}
+
+type Transaction {
+  amount: Float
+  currency_code: String
+  name: String!
+  date: String!
+  category: [String]
+  pending: Boolean
+}
+
+type Query {
+  products: [Product]
+  accounts: [Account]
+  transactions(offset: Int): [Transaction]
+}
+
+input CreateProductInput {
+  name: String!
+  description: String
+}
+
+type Mutation {
+  createProduct(input: CreateProductInput!): Product
+}

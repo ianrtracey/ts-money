@@ -1,0 +1,53 @@
+{
+  "name": "project-base-ts",
+  "version": "1.0.0",
+  "description": "A project template for typescript",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\" --kill-others",
+    "build": "sh ./util/buildforProd.sh",
+    "clean": "rm -rf ./build",
+    "client": "cd ./src/client && npm run start",
+    "server": "nodemon --config \"./util/nodemon.json\"/",
+    "start": "npm install --only=prod && NODE_ENV=production node ./build/server/start.js",
+    "test": "jest",
+    "postinstall": "cd src/client && npm install"
+  },
+  "author": "Ian Tracey <ianrtracey@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "concurrently": "^5.0.2",
+    "jest": "^25.3.0",
+    "nodemon": "^2.0.2",
+    "ts-jest": "^25.3.1",
+    "ts-node": "^8.5.4",
+    "tslint": "^5.20.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@overnightjs/core": "^1.6.11",
+    "@overnightjs/logger": "^1.1.9",
+    "@types/express": "^4.17.2",
+    "@types/mocha": "^7.0.2",
+    "@types/mongoose": "^5.5.36",
+    "@types/node": "^13.1.1",
+    "@types/node-fetch": "^2.5.4",
+    "@types/react": "^16.9.17",
+    "@types/react-dom": "^16.9.4",
+    "@types/styled-components": "^4.4.1",
+    "apollo-server-express": "^2.9.15",
+    "body-parser": "^1.19.0",
+    "decamelize": "^4.0.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "graphql-import-node": "0.0.4",
+    "graphql-tools": "^4.0.6",
+    "moment": "^2.24.0",
+    "mongoose": "^5.8.3",
+    "plaid": "^4.10.0",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "react-scripts": "^3.3.0"
+  }
+}
