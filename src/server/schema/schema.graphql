@@ -18,10 +18,14 @@ type Transaction {
   pending: Boolean
 }
 
+type User {
+  income: String
+}
+
 type Query {
-  products: [Product]
   accounts: [Account]
   transactions(offset: Int): [Transaction]
+  user: User
 }
 
 input CreateProductInput {
@@ -29,6 +33,15 @@ input CreateProductInput {
   description: String
 }
 
+input UpdateIncomeInput {
+  income: String!
+}
+
+type MutationResponse {
+  success: Boolean
+}
+
 type Mutation {
   createProduct(input: CreateProductInput!): Product
+  updateIncome(input: UpdateIncomeInput!): MutationResponse!
 }

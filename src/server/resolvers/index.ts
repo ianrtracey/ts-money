@@ -3,17 +3,13 @@ import { MongooseDocument } from "mongoose";
 import { Product } from "../models/product.model";
 import { getAccounts, getTransactions } from "../plaid/api";
 
+
+const store = {
+  income: null
+}
+
 const resolvers: IResolvers = {
   Query: {
-    products: (_: void, args: void) => {
-      return Product.find({}, (error: Error, products: MongooseDocument) => {
-        if (error) {
-          return null;
-        }
-
-        return products;
-      });
-    },
     accounts: async (_: void, args: void) => {
       const accounts: any = await getAccounts();
       return accounts.map((account: any) => ({
@@ -33,12 +29,21 @@ const resolvers: IResolvers = {
         category: txn.category,
         pending: txn.pending
       }));
+    },
+    user: async (_: void, args: void) => {
+      return ({
+        income: store.income,
+      })
     }
   },
   Mutation: {
     createProduct: async (_: void, { input }) => {
       const product = await Product.create(input);
       return product;
+    },
+    updateIncome: async(_: void, { input: { income }}) => {
+      store.income = income
+      return {success: true}
     }
   }
 };
