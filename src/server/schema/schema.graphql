@@ -1,7 +1,3 @@
-type Product {
-  name: String!
-  description: String
-}
 type Account {
   name: String!
   balance_available: Float
@@ -19,21 +15,13 @@ type Transaction {
 }
 
 type User {
+  email: String!
+  plaidAccessToken: String
   income: Int
   savingsRate: Int
   expenses: Int
 }
 
-type Query {
-  accounts: [Account]
-  transactions(accessToken: String!, offset: Int): [Transaction]
-  user: User
-}
-
-input CreateProductInput {
-  name: String!
-  description: String
-}
 
 input UpdateIncomeInput {
   income: String!
@@ -71,12 +59,22 @@ type LoginResponse {
   access_token: String
 }
 
+input CreateUserInput {
+  email: String!
+}
 
+
+
+type Query {
+  accounts: [Account]
+  transactions(offset: Int): [Transaction]
+  user: User
+}
 
 type Mutation {
-  createProduct(input: CreateProductInput!): Product
   updateIncome(input: UpdateIncomeInput!): UpdateIncomeResponse!
   updateExpenses(input: UpdateExpensesInput!): UpdateExpensesResponse!
   updateSavingsRate(input: SavingsRateInput!): UpdateSavingsRateResponse!
   login(input: LoginInput!): LoginResponse!
+  createUser(input: CreateUserInput!): User 
 }

@@ -1,20 +1,36 @@
 import { IResolvers } from "graphql-tools";
-import { MongooseDocument } from "mongoose";
-import { Product } from "../models/product.model";
 import { getAccounts, getTransactions, exchangePublicToken } from "../plaid/api";
-import { access } from 'fs';
+// @ts-ignore
+import User from '../../../models/user'
+import sequelize from '../db'
+import { DataTypes } from 'sequelize'
 
-
-const store = {
-  income: 0,
-  savingsRate: 0,
-  expenses: 0,
+type Store = {
+  email: string
+  income: number | null
+  savingsRate: number | null
+  expenses: number | null
 }
+
+
+type Context = {
+    plaidAccessToken: string | null
+}
+
+const store: Store = {
+  email: "ianrtracey@gmail.com",
+  income: 7400,
+  savingsRate: 30,
+  expenses: 2400,
+}
+
 
 const resolvers: IResolvers = {
   Query: {
-    accounts: async (_: void, args: void) => {
-      const accounts: any = await getAccounts();
+    accounts: async (_: void, args: void, context: Context) => {
+      console.log({context})
+      const plaidAccessToken = context.plaidAccessToken || ''
+      const accounts: any = await getAccounts(plaidAccessToken);
       return accounts.map((account: any) => ({
         name: account.name,
         balance_available: account.balances.available,
@@ -22,8 +38,9 @@ const resolvers: IResolvers = {
         currency_code: account.balances.iso_currency_code
       }));
     },
-    transactions: async (_: void, {accessToken}) => {
-      const txns: any = await getTransactions(accessToken);
+    transactions: async (_: void, args: void, context: Context) => {
+      const plaidAccessToken = context.plaidAccessToken
+      const txns: any = await getTransactions(plaidAccessToken || '');
       return txns.map((txn: any) => ({
         name: txn.name,
         amount: txn.amount,
@@ -42,10 +59,6 @@ const resolvers: IResolvers = {
     }
   },
   Mutation: {
-    createProduct: async (_: void, { input }) => {
-      const product = await Product.create(input);
-      return product;
-    },
     updateIncome: async(_: void, { input: { income }}) => {
       const sanitizedIncome = Number(income.replace(/\D/g,''))
       store.income = sanitizedIncome;
@@ -66,6 +79,10 @@ const resolvers: IResolvers = {
       } catch (e) {
         return {success: false, error: e}
       }
+    },
+    createUser: async(_: void, { input: { email }}) => {
+      const user = await User(sequelize, DataTypes).create({ email, })
+      return user
     }
   }
 };

@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import { ApolloServer } from "apollo-server-express";
 import { createServer } from "http";
-import mongoose from "mongoose";
 import schema from "./schema";
 import bodyParser from "body-parser";
 
@@ -30,11 +29,6 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-const mongoDbUri = process.env.MONGODB_URI || "mongodb://localhost:27017/myapp";
-mongoose.connect(mongoDbUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
 
 app.set("view engine", "ejs");
 
@@ -52,7 +46,11 @@ app.get("/login", (req, res, next) => {
 });
 
 const apolloServer = new ApolloServer({
-  schema
+  schema,
+  context: ({ req }) => {
+    const plaidAccessToken = req.headers['plaid-access-token'] || ''
+    return { plaidAccessToken }
+  }
 });
 apolloServer.applyMiddleware({ app, path: "/graphql" });
 const appServer = createServer(app);

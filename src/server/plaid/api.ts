@@ -11,10 +11,9 @@ const client = new plaid.Client(
     version: "2019-05-29" // specify API version
   }
 );
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || "";
-export const getAccounts = () => {
+export const getAccounts = (plaidAccessToken: string) => {
   return new Promise((resolve, reject) => {
-    client.getBalance(ACCESS_TOKEN, function(error, response) {
+    client.getAccounts(plaidAccessToken, function(error, response) {
       if (error) {
         console.log(error);
         reject(error);
