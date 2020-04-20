@@ -1,11 +1,14 @@
 import { IResolvers } from "graphql-tools";
 import { MongooseDocument } from "mongoose";
 import { Product } from "../models/product.model";
-import { getAccounts, getTransactions } from "../plaid/api";
+import { getAccounts, getTransactions, exchangePublicToken } from "../plaid/api";
+import { access } from 'fs';
 
 
 const store = {
-  income: null
+  income: 0,
+  savingsRate: 0,
+  expenses: 0,
 }
 
 const resolvers: IResolvers = {
@@ -19,8 +22,8 @@ const resolvers: IResolvers = {
         currency_code: account.balances.iso_currency_code
       }));
     },
-    transactions: async (_: void, args: void) => {
-      const txns: any = await getTransactions();
+    transactions: async (_: void, {accessToken}) => {
+      const txns: any = await getTransactions(accessToken);
       return txns.map((txn: any) => ({
         name: txn.name,
         amount: txn.amount,
@@ -33,6 +36,8 @@ const resolvers: IResolvers = {
     user: async (_: void, args: void) => {
       return ({
         income: store.income,
+        savingsRate: store.savingsRate,
+        expenses: store.expenses
       })
     }
   },
@@ -42,8 +47,25 @@ const resolvers: IResolvers = {
       return product;
     },
     updateIncome: async(_: void, { input: { income }}) => {
-      store.income = income
-      return {success: true}
+      const sanitizedIncome = Number(income.replace(/\D/g,''))
+      store.income = sanitizedIncome;
+      return { success: true, income: sanitizedIncome}
+    },
+    updateSavingsRate: async(_: void, { input: { savingsRate }}) => {
+      store.savingsRate = savingsRate
+      return { success: true, savingsRate}
+    },
+    updateExpenses: async(_: void, { input: { expenses }}) => {
+      store.expenses = expenses
+      return { success: true, expenses}
+    },
+    login: async(_: void, { input: { publicToken }}) => {
+      try {
+        const accessToken = await exchangePublicToken(publicToken)
+        return { success: true, access_token: accessToken}
+      } catch (e) {
+        return {success: false, error: e}
+      }
     }
   }
 };

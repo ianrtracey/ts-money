@@ -19,12 +19,14 @@ type Transaction {
 }
 
 type User {
-  income: String
+  income: Int
+  savingsRate: Int
+  expenses: Int
 }
 
 type Query {
   accounts: [Account]
-  transactions(offset: Int): [Transaction]
+  transactions(accessToken: String!, offset: Int): [Transaction]
   user: User
 }
 
@@ -37,11 +39,44 @@ input UpdateIncomeInput {
   income: String!
 }
 
-type MutationResponse {
+type UpdateIncomeResponse {
   success: Boolean
+  income: Int
 }
+
+type UpdateSavingsRateResponse {
+  success: Boolean
+  savingsRate: Int
+}
+
+input SavingsRateInput {
+  savingsRate: Int!
+}
+
+input UpdateExpensesInput {
+  expenses: Int!
+}
+
+type UpdateExpensesResponse {
+  success: Boolean
+  expenses: Int
+}
+
+input LoginInput {
+  publicToken: String!
+}
+
+type LoginResponse {
+  success: Boolean!
+  access_token: String
+}
+
+
 
 type Mutation {
   createProduct(input: CreateProductInput!): Product
-  updateIncome(input: UpdateIncomeInput!): MutationResponse!
+  updateIncome(input: UpdateIncomeInput!): UpdateIncomeResponse!
+  updateExpenses(input: UpdateExpensesInput!): UpdateExpensesResponse!
+  updateSavingsRate(input: SavingsRateInput!): UpdateSavingsRateResponse!
+  login(input: LoginInput!): LoginResponse!
 }
