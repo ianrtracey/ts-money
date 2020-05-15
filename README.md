@@ -12,6 +12,13 @@ A fullstack project starter for rapid product development.
 - Livereloading for both server and client
 - Heroku deployment ready
 
+
+## Setting up db
+for session auth
+```
+psql mydatabase < node_modules/connect-pg-simple/table.sql
+```
+
 ## Getting started
 
 1. Install `npm install && cd src/client && npm install && cd ../../`

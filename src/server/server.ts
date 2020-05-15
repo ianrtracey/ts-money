@@ -11,6 +11,8 @@ import session from 'express-session'
 // @ts-ignore
 import { User } from './models'
 import { GraphQLLocalStrategy, buildContext } from 'graphql-passport'
+import { Sequelize } from 'sequelize';
+import { strictEqual } from 'assert';
 
 require('dotenv').config()
 
@@ -95,13 +97,27 @@ passport.use(
   })
 )
 
+const SequelizeStore = require('connect-session-sequelize')(session.Store)
+const sequelize = new Sequelize("piggybank_development", "", "", {
+  dialect: 'postgres'
+})
+const sequelizeStore = new SequelizeStore({
+  db: sequelize,
+  checkExpirationInterval: 15 * 60 * 1000,
+  expiration: 24 * 60 * 60 * 1000
+})
+
 app.use(session({
-  genid: (req) => uuidv4(),
+  store: sequelizeStore,
   secret: 'bad secret',
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false }
 }));
+
+sequelizeStore.sync();
+
+
 
 app.use(passport.initialize());
 app.use(passport.session());
