@@ -1,10 +1,12 @@
-import { IResolvers } from "graphql-tools";
+import { IResolvers, buildSchemaFromTypeDefinitions } from "graphql-tools";
 import { getAccounts, getTransactions, exchangePublicToken } from "../plaid/api";
 // @ts-ignore
-import User from '../../../models/user'
-import sequelize from '../db'
-import { DataTypes } from 'sequelize'
-
+import{ User }  from '../models'
+import { ValidationError } from 'sequelize'
+import bcrypt from "bcrypt";
+import jsonwebtoken from "jsonwebtoken"
+import { isContext } from 'vm';
+import { v4 as uuidv4} from 'uuid'
 type Store = {
   email: string
   income: number | null
@@ -15,6 +17,7 @@ type Store = {
 
 type Context = {
     plaidAccessToken: string | null
+    getUser: () => any
 }
 
 const store: Store = {
@@ -50,12 +53,9 @@ const resolvers: IResolvers = {
         pending: txn.pending
       }));
     },
-    user: async (_: void, args: void) => {
-      return ({
-        income: store.income,
-        savingsRate: store.savingsRate,
-        expenses: store.expenses
-      })
+    me: async (_: void, args, context) => {
+      console.log(context.getUser())
+      return context.getUser()
     }
   },
   Mutation: {
@@ -72,17 +72,28 @@ const resolvers: IResolvers = {
       store.expenses = expenses
       return { success: true, expenses}
     },
-    login: async(_: void, { input: { publicToken }}) => {
-      try {
-        const accessToken = await exchangePublicToken(publicToken)
-        return { success: true, access_token: accessToken}
-      } catch (e) {
-        return {success: false, error: e}
-      }
+    login: async(_: void, { input: { email, password }}, context) => {
+      const { user } = await context.authenticate('graphql-local', { email, password});
+      await context.login(user)
+      return { user }
     },
-    createUser: async(_: void, { input: { email }}) => {
-      const user = await User(sequelize, DataTypes).create({ email, })
-      return user
+    createUser: async(_: void, { input: { email, password }}, context) => {
+      const existingUser = await context.User.findOne({
+        where: { email }
+      })
+      if (existingUser) {
+        throw new Error('User with email already exists')
+      }
+
+      const newUser = { email, password}
+      const user = await context.User.create(newUser)
+      console.log({
+        user
+      })
+
+      await context.login({...newUser, id: user.dataValues.id})
+      console.log({newUser})
+      return { email: newUser.email}
     }
   }
 };

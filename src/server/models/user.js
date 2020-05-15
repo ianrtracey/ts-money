@@ -6,11 +6,14 @@ module.exports = (sequelize, DataTypes) => {
       email: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: {
+            msg: "Must be a valid email address",
+          },
+        },
       },
-      income: DataTypes.INTEGER,
-      expenses: DataTypes.INTEGER,
-      savings_rate: DataTypes.INTEGER,
-      plaid_access_token: DataTypes.STRING,
+      password: DataTypes.STRING,
     },
     {}
   );

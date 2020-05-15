@@ -1,9 +1,18 @@
 import express from "express";
 import path from "path";
-import { ApolloServer } from "apollo-server-express";
+import { ApolloServer  } from "apollo-server-express";
 import { createServer } from "http";
 import schema from "./schema";
-import bodyParser from "body-parser";
+import bodyParser from "body-parser"
+import {v4 as uuidv4 } from 'uuid'
+import passport from "passport"
+import cors from "cors";
+import session from 'express-session'
+// @ts-ignore
+import { User } from './models'
+import { GraphQLLocalStrategy, buildContext } from 'graphql-passport'
+
+require('dotenv').config()
 
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
@@ -29,6 +38,10 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+app.use(cors({
+  origin: ['http://localhost:3001'],
+  credentials: true
+}))
 
 app.set("view engine", "ejs");
 
@@ -45,14 +58,57 @@ app.get("/login", (req, res, next) => {
   });
 });
 
+
 const apolloServer = new ApolloServer({
   schema,
-  context: ({ req }) => {
-    const plaidAccessToken = req.headers['plaid-access-token'] || ''
-    return { plaidAccessToken }
+  context: ({ req, res}) => buildContext({ req, res, User }),
+  playground: {
+    settings: {
+      'request.credentials': 'same-origin'
+    }
   }
 });
-apolloServer.applyMiddleware({ app, path: "/graphql" });
+
+passport.serializeUser((user: any, done) => {
+  console.log('serial', user.id)
+  done(null, user.id);
+})
+passport.deserializeUser(async (id, done) => {
+  console.log('deserial')
+  const user = await User.findByPk(id)
+  console.log({user})
+  done(null, user)
+})
+
+passport.use(
+  new GraphQLLocalStrategy((email: any, password: any, done: any) => {
+    const user = User.findOne({
+      where: {email}
+    })
+    console.log(email)
+    console.log(user)
+    if (!user) {
+      done(new Error('no matching user'), null)
+    } else {
+      done(null, user)
+    }
+  })
+)
+
+app.use(session({
+  genid: (req) => uuidv4(),
+  secret: 'bad secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+apolloServer.applyMiddleware({ app, path: "/graphql", cors: false });
+
+
 const appServer = createServer(app);
 
 export default appServer;
