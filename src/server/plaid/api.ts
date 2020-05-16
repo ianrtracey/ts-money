@@ -15,7 +15,6 @@ export const getAccounts = (plaidAccessToken: string) => {
   return new Promise((resolve, reject) => {
     client.getAccounts(plaidAccessToken, function(error, response) {
       if (error) {
-        console.log(error);
         reject(error);
       }
       const balanceResponse = response.accounts;

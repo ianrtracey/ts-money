@@ -31,7 +31,6 @@ const store: Store = {
 const resolvers: IResolvers = {
   Query: {
     accounts: async (_: void, args: void, context: Context) => {
-      console.log({context})
       const plaidAccessToken = context.plaidAccessToken || ''
       const accounts: any = await getAccounts(plaidAccessToken);
       return accounts.map((account: any) => ({
@@ -54,7 +53,6 @@ const resolvers: IResolvers = {
       }));
     },
     me: async (_: void, args, context) => {
-      console.log(context.getUser())
       return context.getUser()
     }
   },
@@ -87,12 +85,9 @@ const resolvers: IResolvers = {
 
       const newUser = { email, password}
       const user = await context.User.create(newUser)
-      console.log({
-        user
-      })
+
 
       await context.login({...newUser, id: user.dataValues.id})
-      console.log({newUser})
       return { email: newUser.email}
     }
   }

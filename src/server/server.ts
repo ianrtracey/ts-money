@@ -72,13 +72,10 @@ const apolloServer = new ApolloServer({
 });
 
 passport.serializeUser((user: any, done) => {
-  console.log('serial', user.id)
   done(null, user.id);
 })
 passport.deserializeUser(async (id, done) => {
-  console.log('deserial')
   const user = await User.findByPk(id)
-  console.log({user})
   done(null, user)
 })
 
@@ -87,8 +84,6 @@ passport.use(
     const user = User.findOne({
       where: {email}
     })
-    console.log(email)
-    console.log(user)
     if (!user) {
       done(new Error('no matching user'), null)
     } else {
@@ -99,14 +94,14 @@ passport.use(
 
 const SequelizeStore = require('connect-session-sequelize')(session.Store)
 const sequelize = new Sequelize("piggybank_development", "", "", {
-  dialect: 'postgres'
+  dialect: 'postgres',
+  logging: false
 })
 const sequelizeStore = new SequelizeStore({
   db: sequelize,
   checkExpirationInterval: 15 * 60 * 1000,
   expiration: 24 * 60 * 60 * 1000
 })
-
 app.use(session({
   store: sequelizeStore,
   secret: 'bad secret',
